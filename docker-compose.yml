@@ -1,0 +1,45 @@
+version: '3.8'
+
+services:
+  app:
+    build:
+      context: .
+    container_name: erp
+    volumes:
+      - .:/var/www/html
+    working_dir: /var/www/html
+    ports:
+      - "8000:80"
+    depends_on:
+      - db
+    networks:
+      - internal_network
+
+  web:
+    image: nginx:stable-alpine
+    container_name: proxy
+    volumes:
+      - .:/var/www/html
+      - ./nginx/default.conf:/etc/nginx/conf.d/default.conf
+    ports:
+      - "8080:80"
+    depends_on:
+      - app
+    networks:
+      - internal_network
+
+  db:
+    image: mysql:8.0
+    container_name: database
+    restart: always
+    environment:
+      MYSQL_DATABASE: erp
+      MYSQL_ROOT_PASSWORD: 123456
+    ports:
+      - "3306:3306"
+    networks:
+      - internal_network
+
+networks:
+  internal_network:
+    driver: bridge
