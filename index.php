@@ -304,7 +304,21 @@ switch (ENVIRONMENT)
 	}
 
 	define('VIEWPATH', $view_folder.DIRECTORY_SEPARATOR);
+	
+	spl_autoload_register(function ($class) {
+			$paths = [
+					APPPATH . 'repositories/' . $class . '.php',
+					APPPATH . 'services/' . $class . '.php',
+					// adicione outros diretórios aqui
+			];
 
+			foreach ($paths as $file) {
+					if (file_exists($file)) {
+							require_once $file;
+							return;
+					}
+			}
+	});
 /*
  * --------------------------------------------------------------------
  * LOAD THE BOOTSTRAP FILE
