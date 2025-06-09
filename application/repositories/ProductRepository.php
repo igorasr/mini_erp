@@ -1,17 +1,14 @@
 <?php
 
-defined('BASEPATH') OR exit('No direct script access allowed');
+defined('BASEPATH') or exit('No direct script access allowed');
 
-class ProductRepository
+class ProductRepository extends My_Repository
 {
-    private $db;
-    private $CI;
 
     public function __construct()
     {
-      $this->CI =& get_instance();
-      $this->db = $this->CI->db;
-      $this->CI->load->model('Product');
+        parent::__construct();
+        $this->CI->load->model('Product');
     }
 
     public function hydrate(array $data): Product
@@ -65,15 +62,33 @@ class ProductRepository
      * @param int $product_id O ID do produto para consulta do estoque.
      * @return int Retorna a quantidade em estoque do produto. Caso não exista, retorna 0.
      */
-    public function getStock($product_id): int 
+    public function getStock($product_id): int
     {
-      $query = $this->db->select('stock')
+        $query = $this->db->select('stock')
             ->from('product_stock')
             ->where('product_id', $product_id)
             ->get()
             ->row_array();
 
         return $query['stock'] ?? 0;
+    }
+
+    public function checkStock(Product $product, int $quantity): bool
+    {
+        $stock = $this->db->get_where('product_stock', ['product_id' => $product->id()])->row_array();
+        return $stock && $stock['stock'] >= $quantity;
+    }
+
+    public function decreaseStock(Product $product, int $quantity): void
+    {
+        $stock = $this->db->get_where('product_stock', ['product_id' => $product->id()])->row_array();
+
+        if (!$stock || $stock['stock'] < $quantity) {
+            throw new DomainException("Estoque insuficiente do produto {$product->name}");
+        }
+
+        $newStock = $stock['stock'] - $quantity;
+        $this->db->update('product_stock', ['stock' => $newStock], ['product_id' => $product->id()]);
     }
 
     public function save(Product $product): Product
@@ -83,7 +98,7 @@ class ProductRepository
         $this->db->trans_start();
 
         $this->db->insert('products', $data);
-        
+
         if ($this->db->affected_rows() === 0) {
             throw new \RuntimeException('Failed to insert product');
         }
@@ -104,7 +119,7 @@ class ProductRepository
 
     public function update(Product $product)
     {
-        if(!$product->id()) {
+        if (!$product->id()) {
             throw new \InvalidArgumentException('Product ID must be set before updating');
         }
 

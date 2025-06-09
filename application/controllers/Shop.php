@@ -62,4 +62,36 @@ class Shop extends CI_Controller
     }
   }
 
+
+  public function checkout()
+  {
+    $this->load->library('OrderService');
+    $this->load->model('Order');
+
+    $orderService = new OrderService();
+
+    $cartData = $this->session->userdata('carrinho');
+    $carrinho = null;
+
+    if (!empty($cartData)) {
+        $carrinho = @unserialize($cartData);
+    }
+    if (!$carrinho instanceof ShopCart) {
+        $carrinho = new ShopCart();
+    }
+
+    if (count($carrinho) <= 0) {
+      redirect('shop/');
+    }
+
+    // Aqui você pode implementar a lógica de checkout, como processar o pagamento, etc.
+    $couponCode = $this->input->post('coupon_code') ?? '';
+    $order = $orderService->saveOrder($carrinho, $couponCode);
+    
+    // Limpa o carrinho após o checkout
+    $carrinho->clear();
+    $this->session->set_userdata('carrinho', serialize($carrinho));
+
+    redirect('shop/');
+  }
 }
