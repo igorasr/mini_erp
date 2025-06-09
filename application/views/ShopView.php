@@ -34,8 +34,7 @@
                                 data-id="<?= $product->id() ?>"
                                 data-name="<?= htmlspecialchars($product->name) ?>"
                                 data-price="<?= $product->price ?>"
-                                data-stock="<?= $product->stock ?>"
-                                >
+                                data-stock="<?= $product->stock ?>">
                                 Editar
                             </button>
                         </div>
