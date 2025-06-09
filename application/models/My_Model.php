@@ -3,8 +3,8 @@ defined('BASEPATH') or exit('No direct script access allowed');
 
 class My_Model extends CI_Model
 {
-  protected string $tabel;
-  protected int $id;
+  public string $table='';
+  protected ?int $id=null;
 
   public function __construct()
   {
@@ -12,7 +12,7 @@ class My_Model extends CI_Model
     $this->load->database();
   }
 
-  public function id(): int
+  public function id(): ?int
   {
     return $this->id;
   }
@@ -28,7 +28,7 @@ class My_Model extends CI_Model
 
   public function _to_db(): array
   {
-    $fields = $this->db->list_fields($this->tabel);
+    $fields = $this->db->list_fields($this->table);
     $data = [];
 
     foreach ($fields as $field) {

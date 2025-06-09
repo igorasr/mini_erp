@@ -5,6 +5,7 @@ class ShopCart implements \Iterator, \Serializable, \Countable
 {
     private array $items = [];
     public float $subtotal = 0.0;
+    public string $couponCode = '';
 
     public function addItem(Product $product, int $quantity): void
     {
@@ -55,6 +56,16 @@ class ShopCart implements \Iterator, \Serializable, \Countable
     
     public function removeItem(string $productId): void
     {
+        if (!isset($this->items[$productId])) {
+            throw new InvalidArgumentException('Product not found in cart');
+        }
+        $item = $this->items[$productId];
+
+        $this->subtotal -= $item['price'] * $item['quantity'];
+
+        if ($this->subtotal < 0) {
+            $this->subtotal = 0.0; // Ensure subtotal does not go negative
+        }
         unset($this->items[$productId]);
     }
 
@@ -66,6 +77,7 @@ class ShopCart implements \Iterator, \Serializable, \Countable
     public function clear(): void
     {
         $this->items = [];
+        $this->subtotal = 0.0;
     }
 
     public function serialize()
