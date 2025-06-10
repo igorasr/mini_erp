@@ -54,12 +54,19 @@
                 </div>
                 <div class="modal-body">
                     <input type="hidden" id="edit-produto-id" name="id">
+
                     <label for="name">Nome</label>
                     <input id="produto-name" name="name" class="form-control mb-2" placeholder="Nome" required>
+
                     <label for="price">Preco (R$)</label>
                     <input id="produto-price" name="price" class="form-control mb-2" placeholder="Preço" type="number" step="0.01" required>
+
                     <label for="price">Estoque</label>
                     <input id="produto-stock" name="stock" class="form-control mb-2" placeholder="Estoque" type="number" step="1" required>
+
+                    <label>Variações</label>
+                    <div id="variacoes-container"></div>
+                    <button type="button" class="btn btn-sm btn-outline-primary mb-2" id="add-variacao">+ Variação</button>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
@@ -148,8 +155,6 @@
                         .then(res => res.json())
                         .then(data => {
                             if (data.success) {
-                                alert('Produto adicionado ao carrinho!');
-                                // Atualize contagem no botão
                                 document.querySelector('.btn.btn-primary').innerText = `Carrinho (${data.total})`;
                             } else {
                                 alert('Erro ao adicionar no carrinho.');
@@ -228,6 +233,29 @@
                         }
                     })
                     .catch(() => alert('Erro na requisição.'));
+            });
+
+            const variacoesContainer = document.getElementById('variacoes-container');
+            const addBtn = document.getElementById('add-variacao');
+
+            addBtn.addEventListener('click', function() {
+                const index = variacoesContainer.children.length;
+                const row = document.createElement('div');
+                row.className = 'd-flex mb-2 gap-2';
+
+                row.innerHTML = `
+                    <input type="text" name="variacoes[${index}][atributo]" class="form-control" placeholder="Atributo (ex: cor)" required>
+                    <input type="text" name="variacoes[${index}][valor]" class="form-control" placeholder="Valor (ex: vermelho)" required>
+                    <button type="button" class="btn btn-danger btn-sm remove-variacao">x</button>
+                `;
+
+                variacoesContainer.appendChild(row);
+            });
+
+            variacoesContainer.addEventListener('click', function(e) {
+                if (e.target.classList.contains('remove-variacao')) {
+                    e.target.closest('.d-flex').remove();
+                }
             });
         });
     </script>

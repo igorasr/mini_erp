@@ -30,6 +30,7 @@ class Products extends CI_Controller
         'name' => $this->input->post('name'),
         'price' => (float)$this->input->post('price'),
         'stock' => (int)$this->input->post('stock', true) ?: 0,
+        'variants' => $this->input->post('variacoes', true) ?: []
       ]);
       return;
     }
@@ -38,6 +39,7 @@ class Products extends CI_Controller
       'name' => $this->input->post('name'),
       'price' => (float)$this->input->post('price'),
       'stock' => (int)$this->input->post('stock', true) ?: 0,
+      'variants' => $this->input->post('variacoes', true) ?: []
     ]);
 
     Response::json(

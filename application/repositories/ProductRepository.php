@@ -110,6 +110,12 @@ class ProductRepository extends My_Repository
                 'product_id' => $product->id(),
                 'stock' => $product->stock
             ]);
+
+            $id_stock = $this->db->insert_id();
+        }
+
+        if (!empty($product->variants)) {
+            $this->saveVariants($product, $id_stock);
         }
 
         $this->db->trans_complete();
@@ -128,10 +134,65 @@ class ProductRepository extends My_Repository
         if ($this->db->update('products', $product->_to_db(), ['id' => $product->id()])) {
             $this->db->where('product_id', $product->id());
             $this->db->update('product_stock', ['stock' => $product->stock]);
+            $id_stock = $this->db->get_where('product_stock', ['product_id' => $product->id()])->row_array()['id'] ?? null;
+        }
+
+        if (!empty($product->variants)) {
+            $this->saveVariants($product, $id_stock);
         }
 
         $this->db->trans_complete();
 
         return $product;
+    }
+
+    public function saveVariants(Product $product, $id_stock)
+    {
+        if (!$product->id()) {
+            throw new \InvalidArgumentException('Product ID must be set before saving variants');
+        }
+
+        if (empty($product->variants)) return null;
+                
+                
+        foreach ($product->variants as $variant) {
+            $variation_type = $this->db->get_where('variation_types', [
+                'name' => $variant['atributo'],
+            ])->row_array();
+
+            if (!$variation_type) {
+                $this->db->insert('variation_types', [
+                    'name' => $variant['atributo']
+                ]);
+
+                $variation_type['id'] = $this->db->insert_id();
+            }
+
+            if (!$variation_type['id']) {
+                throw new \RuntimeException('Failed to insert variation type');
+            }
+
+            $this->db->where('value', $variant['valor']);
+            $this->db->where('variation_type_id', $variation_type['id']);
+            $existingVariant = $this->db->get('variation_values')->row_array();
+
+            if ($existingVariant) {
+                continue; // Skip if the variation value already exists
+            }
+
+            $variant_value_id = $this->db->insert('variation_values', [
+                'value' => $variant['valor'],
+                'variation_type_id' => $variation_type['id']
+            ]);
+
+            if (!$variant_value_id) {
+                throw new \RuntimeException('Failed to insert variation value');
+            }
+
+            $this->db->insert('product_variant_values', [
+                'product_stock_id' => $id_stock,
+                'variation_value_id' => $variant_value_id,
+            ]);
+        }
     }
 }
