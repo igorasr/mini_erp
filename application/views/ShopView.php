@@ -26,7 +26,7 @@
                         <div class="card-body">
                             <h5><?= $product->name ?></h5>
                             <p>R$ <?= number_format($product->price, 2, ',', '.') ?></p>
-                            <a href="/index.php/shop/addToCart/<?= $product->id() ?>" class="btn btn-sm btn-primary">Adicionar no Carrinho</a>
+                            <button class="add-to-cart btn btn-sm btn-primary" data-id="<?= $product->id() ?>">Adicionar no Carrinho</button>
                             <button
                                 class="btn btn-sm btn-primary"
                                 data-bs-toggle="modal"
@@ -47,7 +47,7 @@
     <!-- Modal de Produto -->
     <div class="modal fade" id="produtoModal" tabindex="-1">
         <div class="modal-dialog">
-            <form class="modal-content" method="post" action="/products/create">
+            <form id="produto-form" class="modal-content" method="post" action="/products/create">
                 <div class="modal-header">
                     <h5 class="modal-title">Novo Produto</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
@@ -93,9 +93,10 @@
                                 <td>R$ " . number_format($item['price'], 2, ',', '.') . "</td>
                                 <td>R$ " . number_format($totalItem, 2, ',', '.') . "</td>
                                 <td>
-                                    <span>➖</span>
-                                    <a href='/index.php/shop/addToCart/{$item['id']}'>➕</a>
-                                    <a href='/index.php/shop/removeCart/{$item['id']}'>❌</a>
+                                    <div  class='btn-group' role='group' aria-label='Actions'>
+                                        <button type='button' data-id='{$item['id']}' class='btn incrementToCart'>➕</button>
+                                        <button type='button' data-id='{$item['id']}' class='btn removeToCart'>❌</button>
+                                    </div>
                                 </td>
                               </tr>";
                         }
@@ -133,6 +134,100 @@
                 document.getElementById('produto-name').value = button.getAttribute('data-name');
                 document.getElementById('produto-price').value = button.getAttribute('data-price');
                 document.getElementById('produto-stock').value = button.getAttribute('data-stock');
+            });
+
+            document.querySelectorAll('.add-to-cart').forEach(function(btn) {
+                btn.addEventListener('click', function() {
+                    const productId = this.dataset.id;
+                    fetch(`/index.php/shop/addToCart/${productId}`, {
+                            method: 'POST',
+                            headers: {
+                                'X-Requested-With': 'XMLHttpRequest'
+                            }
+                        })
+                        .then(res => res.json())
+                        .then(data => {
+                            if (data.success) {
+                                alert('Produto adicionado ao carrinho!');
+                                // Atualize contagem no botão
+                                document.querySelector('.btn.btn-primary').innerText = `Carrinho (${data.total})`;
+                            } else {
+                                alert('Erro ao adicionar no carrinho.');
+                            }
+
+                            window.location.reload();
+                        });
+                });
+            });
+
+            document.querySelectorAll('.incrementToCart').forEach(function(btn) {
+                btn.addEventListener('click', function() {
+                    const productId = this.dataset.id;
+                    fetch(`/index.php/shop/addToCart/${productId}`, {
+                            method: 'POST',
+                            headers: {
+                                'X-Requested-With': 'XMLHttpRequest'
+                            }
+                        })
+                        .then(res => res.json())
+                        .then(data => {
+                            if (data.success) {
+                                alert('Produto adicionado ao carrinho!');
+                                // Atualize contagem no botão
+                                document.querySelector('.btn.btn-primary').innerText = `Carrinho (${data.total})`;
+                            } else {
+                                alert('Erro ao adicionar no carrinho.');
+                            }
+                            window.location.reload()
+                        });
+                });
+            });
+            document.querySelectorAll('.removeToCart').forEach(function(btn) {
+                btn.addEventListener('click', function() {
+                    const productId = this.dataset.id;
+                    fetch(`/index.php/shop/removeCart/${productId}`, {
+                            method: 'POST',
+                            headers: {
+                                'X-Requested-With': 'XMLHttpRequest'
+                            }
+                        })
+                        .then(res => res.json())
+                        .then(data => {
+                            if (data.success) {
+                                alert('Produto removido do carrinho!');
+                                // Atualize contagem no botão
+                                document.querySelector('.btn.btn-primary').innerText = `Carrinho (${data.total})`;
+                            } else {
+                                alert('Erro ao remover do carrinho.');
+                            }
+                        });
+                });
+            });
+
+            const form = document.getElementById('produto-form');
+
+            form.addEventListener('submit', function(e) {
+                e.preventDefault(); // Impede o redirecionamento
+
+                const formData = new FormData(form);
+                fetch(form.action, {
+                        method: 'POST',
+                        body: formData,
+                        headers: {
+                            'X-Requested-With': 'XMLHttpRequest'
+                        }
+                    })
+                    .then(res => res.json())
+                    .then(data => {
+                        if (data.success) {
+                            alert('Produto salvo com sucesso!');
+                            form.reset();
+                            window.location.reload()
+                        } else {
+                            alert('Erro ao salvar produto.');
+                        }
+                    })
+                    .catch(() => alert('Erro na requisição.'));
             });
         });
     </script>

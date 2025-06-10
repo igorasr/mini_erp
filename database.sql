@@ -37,6 +37,19 @@ CREATE TABLE product_variant_values (
     FOREIGN KEY (variation_value_id) REFERENCES variation_values(id)
 );
 
+-- Cupons de desconto
+CREATE TABLE coupons (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    code VARCHAR(50) UNIQUE NOT NULL,
+    description VARCHAR(255),
+    discount_value DECIMAL(10,2) NOT NULL,
+    usage_limit INT DEFAULT NULL, -- null = ilimitado
+    used_count INT DEFAULT 0,
+    valid_from DATE,
+    valid_until DATE,
+    active BOOLEAN DEFAULT FALSE
+);
+
 -- Pedidos
 CREATE TABLE orders (
     id INT AUTO_INCREMENT PRIMARY KEY,
@@ -56,17 +69,4 @@ CREATE TABLE order_items (
     price DECIMAL(10,2) NOT NULL, -- preço unitário no momento do pedido
     FOREIGN KEY (order_id) REFERENCES orders(id),
     FOREIGN KEY (product_stock_id) REFERENCES product_stock(id)
-);
-
--- Cupons de desconto
-CREATE TABLE coupons (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    code VARCHAR(50) UNIQUE NOT NULL,
-    description VARCHAR(255),
-    discount_value DECIMAL(10,2) NOT NULL,
-    usage_limit INT DEFAULT NULL, -- null = ilimitado
-    used_count INT DEFAULT 0,
-    valid_from DATE,
-    valid_until DATE,
-    active BOOLEAN DEFAULT FALSE
 );

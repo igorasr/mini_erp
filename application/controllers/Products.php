@@ -9,6 +9,7 @@ class Products extends CI_Controller
   {
     parent::__construct();
     $this->load->library('session');
+    $this->load->library('Response');
     $this->load->helper(['url']);
 
     $this->load->library('ProductService');
@@ -38,5 +39,12 @@ class Products extends CI_Controller
       'price' => (float)$this->input->post('price'),
       'stock' => (int)$this->input->post('stock', true) ?: 0,
     ]);
+
+    Response::json(
+      [
+        'success' => true,
+        'message' => 'Product created successfully.'
+      ]
+    );
   }
 }
